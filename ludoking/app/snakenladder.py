@@ -1,19 +1,26 @@
 import random
 from pyfiglet import Figlet
 from datetime import datetime
+import time
 #global variables
 players =['krishna','paarth','anjali','vipin']
 final = 6
-p=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+p=[0,0,0,0]
 max=len(players)
 rank=[]
 stime =0.0
 tend =datetime.now()
 tstart = datetime.now()
+rules={2:14, 5 : -5, 12 : -7, 8 : 9, 27 : -11, 35: 8, 
+       49 : -35, 57 : 12, 65:10, 77 : -7, 80: 19, 99 : -84}
+rulekey= sorted(rules)
 
-def printStaus(p):
+def printStaus(p,rules,rulekey):
     t=''
-    print(f'current status ')
+    print("")
+    print(f'current status.. ', "")
+    print("")
+    
     for j in range(0,max):
         if j==0:
             t='--'
@@ -23,42 +30,41 @@ def printStaus(p):
             t='~~'
         else:
              t='@'
-        for l in range(0,max):
-            s=p[j][l]*t
-            if j%2==0:
-                print(f'\t {players[j]}[{l+1}] {s} {p[j][l]}', end="")
-                print("")
-                print("")
-            else:
-                print(f'{players[j]}[{l+1}] {s} {p[j][l]}', end="")
-                print("")
-                print("")
-def resetPlayer(players,rn,i,k):
-     l=0
-     yieldx = 0
-     for l in range(0,max):
-        if p[i][l]==p[k][l] and p[k][l]>0 and rn>1 and i!=k: #reseting score for previos player
-            p[k][l]=0
-            print(f'for {players[k]} setting chip {l+1} to zero!')
-            printStaus(p)    
-            print(f'cool  {players[i].upper()} !') 
-            yieldx=handleRepeat(i,6)
-def removePlayer(p,pi):
-    fi=1
+        s=p[j]*t
+        print(f'{players[j]} {s} {p[j]}', end="")
+        print("")
+        print("")
+
+    print(" \t \t Rules: ")        
+    print("")
+    for i in rulekey:
+       if rules[i] < 0:
+            print("\t \t Next snakes are: ")
+            print(f'\t \t {i} -> {rules[i]} -> {int(i)+rules[i]}')
+       else:
+              print("\t \t Next ladders are: ")
+              print(f'\t \t {i} -> {rules[i]} -> {int(i)+rules[i]}')
+            
+def resetPlayer(players,rn,i,k,rules,rulekey):
     l=0
-    for item in p[pi]:
-        if item >= final or item ==-1:
-            fi+=1
-            l=p[pi].index(item)
-            p[pi][l]=-1
-        else:
-            fi*=0
-    if fi > 1:
+    yieldx = 0
+    if p[i]==p[k] and p[k]>0 and rn>1 and i!=k: #reseting score for previos player
+        p[k]=0
+        print(f'for {players[k]} setting chip {l+1} to zero!')
+        printStaus(p,rules,rulekey)    
+        print(f'cool  {players[i].upper()} !') 
+        yieldx=handleRepeat(i,6)
+    return yieldx
+    
+def removePlayer(p,pi):
+    if p[pi] >= 100:
+        p[pi]=-1
         rank.append(players[pi])
         print(f'{players[pi]}, you are done at rank {len(rank)}!')
     return rank    
 def getInput():
     status = input('ready[y/n:] ')
+    print("")
     if status=='n':
         print('quiting..')
         return '0'  
@@ -67,33 +73,7 @@ def getInput():
         return '1'
     else:
         return status
-def getChip(i,dice):
-    gotit=True
-    x=0
-    while gotit:
-        try:
-            g=int(input('which chip you want to play:(1 to 4, 0 to pass) '))
-        except ValueError:
-            g=random.randint(1, 4)
-        if g <0 or g>4:
-            print('chip number should be 1 to 4, zero for pass')    
-            continue
-        elif g==0:
-            gotit=False
-            x=-1
-            continue
-        
-        x=g-1 #chip index
-        
-        if p[i][x]<0:
-            print(f'This chip is already in for {players[i]}')
-            print('Choose another one')
-        elif p[i][x]==0  and dice not in [1,6]:
-            print('you can open with 1 or 6 only')
-        else:
-            gotit=False
-            
-    return x
+
 def handleRepeat(pi,pdice):
     q=0
     if pdice in [6]:
@@ -109,6 +89,12 @@ def checkWon(name,rank):
     if name in rank:
         print(f'{name} already won')
         return True   
+
+def getReplacement(rules,p,i):
+    try:
+        return rules[p[i]]
+    except:
+        return 0        
 #main program
 def ludoKing(list):
     
@@ -119,11 +105,12 @@ def ludoKing(list):
     k=i
     dice=0
     y='' 
-    x=0
     rank=[]
     tdice=0
+ 
     while True:
         name = players[i]
+        name = name.capitalize()
         if checkWon(name,rank):
             i+=1
             if i==max:
@@ -137,30 +124,40 @@ def ludoKing(list):
             continue
         #roll dice
         dice=random.randint(1, 6)
-        print(dice)
-        x=getChip(i,dice)
-        if x==-1:
-            i+=1
-            if i==max:
-                i=0
-            printStaus(p)     
-            continue
+        pdice = str(dice)
+        pdice =  "\033[1m" + pdice + "\033[0m"
+        pdice = pdice.center(10, '\t')
+        print(pdice)
+        print("")
+        
         #increment chip place
-        if p[i][x] > 0:
-            p[i][x]+=dice
-        elif p[i][x] ==0 and dice in [1,6]:
+        if p[i] > 0:
+            p[i]+=dice
+        elif p[i] ==0 and dice in [1,6]:
             tdice=dice
             dice = 1
-            p[i][x]+=dice
+            p[i]+=dice
             dice=tdice
+            print(f"Opening for {name}") 
+            time.sleep(2)
         else:
             i+=1
             if i==max:
                 i=0
-            printStaus(p)    
+            printStaus(p,rules,rulekey)    
             continue
-        printStaus(p)   
-        resetPlayer(players,rn,i,k)           
+        r= getReplacement(rules,p,i)    
+        p[i]+=r
+        printStaus(p,rules,rulekey)   
+        if r < 0 :
+            time.sleep(1)
+            print(f"OOPS! Snake bite {name} by {abs(r)}")
+        elif r > 0:
+            time.sleep(1)
+            print(f"Hurray! {name} got lifted by {r} points")
+        else:
+            pass
+        resetPlayer(players,rn,i,k,rules,rulekey)           
         rank=removePlayer(p,i)
         if len(rank) == max-1:
             print('Game over! Come again!')
@@ -174,8 +171,9 @@ def ludoKing(list):
 tstart=datetime.now()
 
 custom_fig = Figlet(font='graffiti', width =100)
-print(custom_fig.renderText('LudoKing'))
+print(custom_fig.renderText('Snake & Ladder'))
 print(f'Welcome back {players}, you started at {tstart}')
+print("")
 ludoKing(players)
 print(f'Well played {players}!')
 tend=datetime.now()
