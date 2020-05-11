@@ -3,7 +3,7 @@ from pyfiglet import Figlet
 from datetime import datetime
 #global variables
 players =['krishna','paarth','anjali','vipin']
-final = 6
+final = 20
 p=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
 max=len(players)
 rank=[]
@@ -43,6 +43,7 @@ def resetPlayer(players,rn,i,k):
             printStaus(p)    
             print(f'cool  {players[i].upper()} !') 
             yieldx=handleRepeat(i,6)
+            
 def removePlayer(p,pi):
     fi=1
     l=0
